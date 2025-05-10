@@ -6,13 +6,13 @@ using namespace std;
 struct process
 {
     int pid;
-    int arrival_time;
-    int burst_time;
-    int start_time;
-    int completion_time;
-    int turnaround_time;
-    int waiting_time;
-    int response_time;
+    int iArrival;
+    int iBrust;
+    int iStart;
+    int iFinish;
+    int iTaT;
+    int iWaiting;
+    int iRespone;
 };
 int getrandom(int high, int low)
 {
@@ -23,15 +23,9 @@ int main()
     srand(time(0));
     int x;
     struct process p[5];
-    float avg_turnaround_time;
-    float avg_waiting_time;
-    float avg_response_time;
-    float cpu_utilization;
-    int total_turnaround_time = 0;
-    int total_waiting_time = 0;
-    int total_response_time = 0;
-    int total_idle_time = 0;
-    float throughput;
+    int total_iTaT = 0;
+    int total_iWaiting = 0;
+    int total_iRespone = 0;
     int burst_remaining[5];
     int is_completed[5];
     memset(is_completed, 0, sizeof(is_completed));
@@ -43,10 +37,10 @@ int main()
 
     for (int i = 0; i < x; i++)
     {
-        p[i].arrival_time = getrandom(20, 0);
-        p[i].burst_time = getrandom(12, 2);
+        p[i].iArrival = getrandom(20, 0);
+        p[i].iBrust = getrandom(12, 2);
         p[i].pid = i + 1;
-        burst_remaining[i] = p[i].burst_time;
+        burst_remaining[i] = p[i].iBrust;
     }
 
     int current_time = 0;
@@ -59,7 +53,7 @@ int main()
         int mn = INT_MAX;
         for (int i = 0; i < x; i++)
         {
-            if (p[i].arrival_time <= current_time && is_completed[i] == 0)
+            if (p[i].iArrival <= current_time && is_completed[i] == 0)
             {
                 if (burst_remaining[i] < mn)
                 {
@@ -68,7 +62,7 @@ int main()
                 }
                 if (burst_remaining[i] == mn)
                 {
-                    if (p[i].arrival_time < p[idx].arrival_time)
+                    if (p[i].iArrival < p[idx].iArrival)
                     {
                         mn = burst_remaining[i];
                         idx = i;
@@ -79,10 +73,10 @@ int main()
 
         if (idx != -1)
         {
-            if (burst_remaining[idx] == p[idx].burst_time)
+            if (burst_remaining[idx] == p[idx].iBrust)
             {
-                p[idx].start_time = current_time;
-                total_idle_time += p[idx].start_time - prev;
+                p[idx].iStart = current_time;
+                
             }
             burst_remaining[idx] -= 1;
             current_time++;
@@ -90,14 +84,14 @@ int main()
 
             if (burst_remaining[idx] == 0)
             {
-                p[idx].completion_time = current_time;
-                p[idx].turnaround_time = p[idx].completion_time - p[idx].arrival_time;
-                p[idx].waiting_time = p[idx].turnaround_time - p[idx].burst_time;
-                p[idx].response_time = p[idx].start_time - p[idx].arrival_time;
+                p[idx].iFinish = current_time;
+                p[idx].iTaT = p[idx].iFinish - p[idx].iArrival;
+                p[idx].iWaiting = p[idx].iTaT - p[idx].iBrust;
+                p[idx].iRespone = p[idx].iStart - p[idx].iArrival;
 
-                total_turnaround_time += p[idx].turnaround_time;
-                total_waiting_time += p[idx].waiting_time;
-                total_response_time += p[idx].response_time;
+                total_iTaT += p[idx].iTaT;
+                total_iWaiting += p[idx].iWaiting;
+                total_iRespone += p[idx].iRespone;
 
                 is_completed[idx] = 1;
                 completed++;
@@ -109,25 +103,21 @@ int main()
         }
     }
 
-    int min_arrival_time = INT_MAX;
-    int max_completion_time = -1;
+    int min_iArrival = INT_MAX;
+    int max_iFinish = -1;
     for (int i = 0; i < x; i++)
     {
-        min_arrival_time = min(min_arrival_time, p[i].arrival_time);
-        max_completion_time = max(max_completion_time, p[i].completion_time);
+        min_iArrival = min(min_iArrival, p[i].iArrival);
+        max_iFinish = max(max_iFinish, p[i].iFinish);
     }
-
-    avg_turnaround_time = (float)total_turnaround_time / x;
-    avg_waiting_time = (float)total_waiting_time / x;
-    avg_response_time = (float)total_response_time / x;
 
     cout << "Process\tArrival\tBurst\tStart\tFinish\tTAT\tWaiting\tRespone\n";
 
     for (int i = 0; i < x; i++)
     {
-        cout << p[i].pid << "\t" << p[i].arrival_time << "\t" << p[i].burst_time << "\t" << p[i].start_time << "\t" << p[i].completion_time << "\t" << p[i].turnaround_time << "\t" << p[i].waiting_time << "\t" << p[i].response_time << "\n";
+        cout << p[i].pid << "\t" << p[i].iArrival << "\t" << p[i].iBrust << "\t" << p[i].iStart << "\t" << p[i].iFinish << "\t" << p[i].iTaT << "\t" << p[i].iWaiting << "\t" << p[i].iRespone << "\n";
     }
-    cout << "Average Turnaround Time = " << avg_turnaround_time << endl;
-    cout << "Average Waiting Time = " << avg_waiting_time << endl;
-    cout << "Average Response Time = " << avg_response_time << endl;
+    cout << "Average Turnaround Time = " << (float)total_iTaT / x << endl;
+    cout << "Average Waiting Time = " << (float)total_iWaiting / x << endl;
+    cout << "Average Response Time = " << (float)total_iRespone / x << endl;
 }
